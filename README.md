@@ -1,0 +1,2 @@
+# AsTex_WMA
+The project is on "Industrial Washing Machine Automation" with micro- controller. The device will be able to replace the man powers (&amp; high-cost PLC system) constantly engaged to monitor &amp; control the horizontal top loading Washing Machines used in our garments industries. It measures volume of water-intake with a water flow sensor &amp; temperature with a highly sensitive industrial grade thermocouple &amp; combines the data with user specifications/inputs to automatically run the whole process.
