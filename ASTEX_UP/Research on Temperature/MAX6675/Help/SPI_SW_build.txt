@@ -1,0 +1,152 @@
+extern sfr sbit T_CLK;
+extern sfr sbit T_CS;
+extern sfr sbit T_SDI;
+extern sfr sbit T_SDO;
+extern sfr sbit T_Penirq;
+
+extern sfr T_CLK_Direction;
+extern sfr T_CS_Direction;
+extern sfr T_SDI_Direction;
+extern sfr T_SDO_Direction;
+extern sfr T_Penirq_Direction;
+
+
+
+unsigned int T_x,T_y;
+unsigned int TP_x = 0, TP_y = 0;
+
+//=================================
+ 
+void touch_Init()           
+{
+    T_CS = 1;
+    T_CLK = 1;
+    T_SDI = 1;
+    T_CLK = 1;
+}
+
+
+//**********************************************************
+
+void WriteCharTo7843(unsigned char num)          
+{
+unsigned char count=0;
+T_CLK = 0;
+for(count=0;count<8;count++)
+{
+if (num&0x80) 
+   {T_SDI = 1;}
+else 
+   {T_SDI = 0;}
+num = num<<1;
+T_CLK = 0; asm nop; asm nop; asm nop;                
+T_CLK = 1; asm nop; asm nop; asm nop;
+}
+}
+
+//**********************************************************
+
+unsigned int ReadFromCharFrom7843()             
+{
+unsigned char count=0;
+unsigned int num=0;
+for(count=0;count<12;count++)
+{
+num = num<<1;
+T_CLK = 1; asm nop; asm nop; asm nop;                
+T_CLK = 0; asm nop; asm nop; asm nop;
+if(T_SDO == 1) num++;
+}
+return(num);
+}
+
+
+//**********************************************************
+
+void touch_GetAdXY()              
+{
+T_CS = 0;
+
+WriteCharTo7843(0x90);
+T_CLK = 1; asm nop; asm nop; asm nop; asm nop;
+T_CLK = 0; asm nop; asm nop; asm nop; asm nop;
+T_y = ReadFromCharFrom7843();
+
+WriteCharTo7843(0xD0);       
+T_CLK = 1; asm nop; asm nop; asm nop; asm nop;
+T_CLK = 0; asm nop; asm nop; asm nop; asm nop;
+T_x = ReadFromCharFrom7843();
+
+T_CS = 1;
+
+      TP_x =  abs(abs(T_x>>4)-255);      //abs(T_x>>4); to reverse x position!
+      if (TP_x==255) TP_x=0;
+      TP_y = (((abs((T_y>>4)-255))*10)/7);    //~
+
+
+}
+
+
+
+//////////////////////////////////////////////////
+
+void Drow_Touch_Point(unsigned int x,unsigned int y)
+{
+        TFT_Line_1289(x-4,y,x+5,y,black);
+        TFT_Line_1289(x,y-4,x,y+5,black);
+        TFT_Dot_1289(x+1,y+1,black);
+        TFT_Dot_1289(x-1,y+1,black);
+        TFT_Dot_1289(x+1,y-1,black);
+        TFT_Dot_1289(x-1,y-1,black);
+        TFT_Text_1289("D-Amp TFT Calibration", 70, 5, 8, red, cyan);
+   TFT_Circle_1289(x,y,3,black,black);
+}
+  
+
+void position_T()
+{
+
+unsigned int lx = 0;
+unsigned int ly = 30;
+unsigned char ss[6];
+
+
+   TFT_Fill_1289(cyan);
+
+      
+
+                     
+            while(1){
+               
+               touch_GetAdXY();
+
+   
+               inttostr(TP_x,ss);
+               TFT_Text_1289("PosX1:",lx,ly, 8, black, cyan);
+               TFT_Text_1289(ss,lx+60,ly, 8, black, cyan);
+ 
+               inttostr(TP_y,ss);
+               TFT_Text_1289("PosY1:",lx,ly+20, 8, black, cyan);
+               TFT_Text_1289(ss,lx+60,ly+20, 8, black, cyan);
+
+
+               
+               if (T_Penirq == 0){
+               
+               Drow_Touch_Point(TP_y-10,TP_x-10);
+               
+               }
+               
+               delay_ms(50);
+                                        
+               }
+               
+         
+
+
+}
+
+
+
+
+
