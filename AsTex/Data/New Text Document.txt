@@ -1,0 +1,56 @@
+TFT_Text("I LOVE BANGLA",0,40,16,red,green);
+	_delay_ms(1000);
+	
+	_delay_ms(500);
+	TFT_Fill(blue);
+	TFT_Text("0123456789",0,40,16,red,green);
+	_delay_ms(1000);
+	_delay_ms(500);
+	TFT_Fill(black);
+	TFT_Text("Is it okay?",0,40,16,red,green);
+	_delay_ms(1000);
+	_delay_ms(500);
+	TFT_Fill(green);
+	TFT_Text("Please speak",0,40,16,red,green);
+	_delay_ms(1000);
+	_delay_ms(500);
+	TFT_Fill(cyan);
+	TFT_Text("Speak out",0,40,16,red,green);
+	_delay_ms(1000);
+	_delay_ms(500);
+	TFT_Fill(red);
+	TFT_Text("New project",0,40,16,red,green);
+	_delay_ms(1000);
+	_delay_ms(500);
+	TFT_Fill(yellow);
+	TFT_Text("End txt!! now mg",0,40,16,red,green);
+	_delay_ms(1000);
+	_delay_ms(1000);
+	
+	TFT_Box(10,10,60,80,blue);
+	_delay_ms(1000);
+	
+	TFT_Dot(100,50,black);
+	_delay_ms(1000);
+	
+	TFT_Line(10,10,200,200,purple);
+	_delay_ms(1000);
+	
+	TFT_H_Line(100,150,100,white);
+	_delay_ms(1000);
+	
+	TFT_V_Line(100,150,100,white);
+	_delay_ms(1000);
+	
+	TFT_Rectangle(10,10,200,200,yellow);
+	_delay_ms(1000);
+	
+	TFT_Circle(80,80,20,1,black);
+	_delay_ms(1000);
+	
+	TFT_Fill(white);
+	TFT_Text("This program is written by",0,200,8,black,white);
+	_delay_ms(10);
+	TFT_Text("Aman Ullah, Student of UIU",0,220,8,black,white);
+	_delay_ms(1000);
+	

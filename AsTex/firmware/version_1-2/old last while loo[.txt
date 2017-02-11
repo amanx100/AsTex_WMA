@@ -1,0 +1,22 @@
+	TFT_Fill(back_color);
+	TFT_PutsInt(water,4,200,40,8,blue,white);
+	TFT_PutsInt(temp,4,200,50,8,blue,white);
+	TFT_PutsInt(time,4,200,60,8,blue,white);
+	while(1)
+    {
+		TFT_PutsInt(Read_ADC(0,0x00),4,5,20,8,blue,white);
+		_delay_ms(10);
+		TFT_PutsInt(i,4,5,40,8,blue,white);
+		_delay_ms(10);
+		TFT_PutsInt(j,4,5,50,8,blue,white);
+		_delay_ms(10);
+		if (!(PIND & (1<<PD3)))
+		{
+			Read_TPval(TPval);
+			//TFT_PutsInt(TPval[0],4,0,0,8,blue,white);
+			//TFT_PutsInt(TPval[1],4,40,0,8,blue,white);
+			sprintf(ch,"X= %d : Y= %d       ",TPval[0],TPval[1]);
+			TFT_Text(ch,5,10,8,black,white);
+			_delay_ms(10);
+		}
+    }

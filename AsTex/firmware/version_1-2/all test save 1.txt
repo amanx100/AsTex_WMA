@@ -1,0 +1,320 @@
+#define F_CPU 8000000UL
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <stdio.h>
+#include <util/delay.h>
+#include "SSD1289.h"
+#include "XPT2046.h"
+#include "adc.h"
+#include "button.h"
+
+unsigned int i=0,j=0;
+
+ISR(INT0_vect)
+{
+	i++;
+}
+ISR(TIMER1_COMPA_vect)
+{
+	j++;
+}
+
+int main(void)
+{
+	#define back_color blue
+	uint16_t TPval[2]={0};
+	char ch[30];  //it is for temporary use
+	uint16_t mxpos=13,kp_val=0,water=0,temp=0,time=0;
+	uint8_t input_f=0;
+	
+	PORTA=0x00;
+	PORTB=0x40;
+	PORTC=0x00;
+	PORTD=0x00; //0x0C;
+	
+	DDRA=0xFE;
+	DDRB=0xBF;
+	DDRC=0xFF;
+	DDRD=0xF3;
+	
+	adc_init(7);
+	TFT_Init();
+	TP_init();
+	//show_button();
+	TCCR1A=0x00;
+	TCCR1B=0x0C;		//Timer counter 1 initialization with CTC and interrupt mode with Compare match OCR1A 
+	OCR1AH=0x7A;
+	OCR1AL=0x12;
+
+	GICR |= (1<<INT0);				// Enable INT2
+	MCUCSR |= 0x00;					// Trigger INT2 settings
+	MCUCR |= (1<<ISC01)|(1<<ISC00);	//trigger int0 on rising edge
+	GIFR = (1<<INTF0);				//Interrupt flag 2 is cleared by writing a logical one into INTF2
+	TIMSK=0x10;						//Timer/Counter1, Output Compare A Match Interrupt Enable
+	sei();							//Global Interrupt enable
+    //END Setup and initialization
+	
+	//**************************************************//
+	//Start Application from here***********************//
+	//**************************************************//
+	
+	//Welcome message and startup
+	TFT_Fill(back_color);
+	//TFT_Text("Mark Wash & Dyeing Ltd.",23,30,8,yellow,back_color);
+	TFT_Text("ASTEX",75,84,16,white,back_color);
+	TFT_Box(35,150,195,174,yellow);
+	TFT_Text("Start Task",45,155,16,blue,yellow);
+	
+	while (1)
+	{
+		if (!(PIND & (1<<PD3)))
+		{
+			Read_TPval(TPval);
+			//TFT_PutsInt(TPval[0],4,0,0,8,blue,white);
+			//TFT_PutsInt(TPval[1],4,40,0,8,blue,white);
+			if (TPval[0]>120 && TPval[0]<150 && TPval[1]>51 && TPval[1]<201)
+			{
+				break;
+			}
+			_delay_ms(100);
+		}
+	}
+	//End welcome message and startup
+	
+	//Start task input system
+	TFT_Fill(back_color);
+	TFT_Text("Choose an option...",23,20,8,white,back_color);
+	TFT_Box(27,45,203,62,yellow);
+	TFT_Text("800Lit. _ 25'C _ 2min",31,50,8,black,yellow);
+	TFT_Box(27,80,203,97,yellow);
+	TFT_Text("800Lit. _ 50'C _ 2min",31,85,8,black,yellow);
+	TFT_Box(27,115,203,132,yellow);
+	TFT_Text("600Lit. _ 80'C _ 5min",31,120,8,black,yellow);
+	TFT_Box(27,150,203,167,yellow);
+	TFT_Text("600Lit. _ 90'C _ 5min",31,155,8,black,yellow);
+	TFT_Box(27,188,203,228,red);
+	TFT_Text("Manual Input",31,199,16,white,red);
+	
+	while (1)
+	{
+		if (!(PIND & (1<<PD3)))
+		{
+			Read_TPval(TPval);
+			TFT_PutsInt(TPval[0],4,0,0,8,blue,white);
+			TFT_PutsInt(TPval[1],4,40,0,8,blue,white);
+			if (TPval[1]>35 && TPval[1]<211)  // for taking predefined or manual input
+			{
+				if (TPval[0]>197 && TPval[0]<216)
+				{
+					water = 800;
+					temp = 25;
+					time = 2;
+					goto progress;
+				}
+				else if (TPval[0]>175 && TPval[0]<190)
+				{
+					break;
+				}
+				else if (TPval[0]>148 && TPval[0]<167)
+				{
+					break;
+				}
+				else if (TPval[0]>127 && TPval[0]<144)
+				{
+					break;
+				}
+				else if (TPval[0]>83 && TPval[0]<116)
+				{
+					break;
+				}
+			}
+			_delay_ms(100);
+		}
+	}
+		//for manual input show the button
+	TFT_Fill(back_color);
+	show_button();
+	input_f = 1;
+	while(1)
+	{
+		if (input_f == 1)
+		{
+			TFT_Box(10,69,231,101,white);
+			TFT_Text("Input Water ...",10,20,16,white,back_color);
+			TFT_Text("(Liter)  ",10,38,16,white,back_color);
+			input_f = 2;
+		}
+		else if (input_f == 3)
+		{
+			TFT_Box(10,69,231,101,white);
+			TFT_Box(10,20,231,54,back_color);
+			TFT_Text("Input Temp ... ",10,20,16,white,back_color);
+			TFT_Text("(Deg. C) ",10,38,16,white,back_color);
+			input_f = 4;
+		}
+		else if (input_f == 5)
+		{
+			TFT_Box(10,69,231,101,white);
+			TFT_Box(10,20,231,54,back_color);
+			TFT_Text("Input Time ... ",10,20,16,white,back_color);
+			TFT_Text("(Minute)",10,38,16,white,back_color);
+			input_f = 6;
+		}
+		
+		if (!(PIND & (1<<PD3)))
+		{
+			Read_TPval(TPval);
+			TFT_PutsInt(TPval[0],4,0,0,8,blue,white);
+			TFT_PutsInt(TPval[1],4,40,0,8,blue,white);
+			if (TPval[0]>36 && TPval[0]<72)  // 9 0 DEL >> 
+			{
+				if (TPval[1]>23 && TPval[1]<73)
+				{
+					TFT_Text("9",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 9;
+				}
+				else if (TPval[1]>77 && TPval[1]<126)
+				{
+					TFT_Text("0",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10);
+				}
+				else if (TPval[1]>129 && TPval[1]<181)
+				{
+					mxpos-=14;
+					TFT_Text(" ",mxpos,77,16,black,white);
+					kp_val = (kp_val / 10);
+				}
+				else if (TPval[1]>183 && TPval[1]<236)
+				{
+					if (input_f == 2)
+					{
+						water = kp_val;
+						kp_val = 0;
+						mxpos = 13;
+						input_f = 3;
+					}
+					else if (input_f == 4)
+					{
+						temp = kp_val;
+						kp_val = 0;
+						mxpos = 13;
+						input_f = 5;
+					}
+					else if (input_f == 6)
+					{
+						time = kp_val;
+						kp_val = 0;
+						mxpos = 13;
+						input_f = 0;
+						break;
+					}
+				}
+				while (!(PIND & (1<<PD3)));
+			}
+			else if (TPval[0]>75 && TPval[0]<112)  // 5 6 7 8 
+			{
+				if (TPval[1]>23 && TPval[1]<73)
+				{
+					TFT_Text("5",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 5;
+				}
+				else if (TPval[1]>77 && TPval[1]<126)
+				{
+					TFT_Text("6",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 6;
+				}
+				else if (TPval[1]>129 && TPval[1]<181)
+				{
+					TFT_Text("7",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 7;
+				}
+				else if (TPval[1]>183 && TPval[1]<236)
+				{
+					TFT_Text("8",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 8;
+				}
+				while (!(PIND & (1<<PD3)));
+			}
+			else if (TPval[0]>115 && TPval[0]<150)  // 1 2 3 4 
+			{
+				if (TPval[1]>23 && TPval[1]<73)
+				{
+					TFT_Text("1",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 1;
+				}
+				else if (TPval[1]>77 && TPval[1]<126)
+				{
+					TFT_Text("2",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 2;
+				}
+				else if (TPval[1]>129 && TPval[1]<181)
+				{
+					TFT_Text("3",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 3;
+				}
+				else if (TPval[1]>183 && TPval[1]<236)
+				{
+					TFT_Text("4",mxpos,77,16,black,white);
+					mxpos+=14;
+					kp_val = (kp_val * 10) + 4;
+				}
+				while (!(PIND & (1<<PD3)));
+			}
+			_delay_ms(100);
+		}
+	}
+	
+	//End task Input system
+	
+	//Start confirmation input
+	confirmation:
+	TFT_Fill(back_color);
+	TFT_Text("Water :      Liture",20,50,8,white,back_color);
+	
+	TFT_Text("Temp. :      Deg. C",20,70,8,white,back_color);
+	TFT_Text("Time  :      minute",20,90,8,white,back_color);
+	
+	while(1)
+	{
+		Read_TPval(TPval);
+		TFT_PutsInt(TPval[0],4,0,0,8,blue,white);
+		TFT_PutsInt(TPval[1],4,40,0,8,blue,white);
+	}
+	//End confirmation input
+	
+	//Start progress page
+	progress:
+	
+	//End progress page
+	
+	
+	TFT_Fill(back_color);
+	TFT_PutsInt(water,4,200,40,8,blue,white);
+	TFT_PutsInt(temp,4,200,50,8,blue,white);
+	TFT_PutsInt(time,4,200,60,8,blue,white);
+	while(1)
+    {
+		TFT_PutsInt(Read_ADC(0,0x00),4,5,20,8,blue,white);
+		_delay_ms(10);
+		TFT_PutsInt(i,4,5,40,8,blue,white);
+		_delay_ms(10);
+		TFT_PutsInt(j,4,5,50,8,blue,white);
+		_delay_ms(10);
+		if (!(PIND & (1<<PD3)))
+		{
+			Read_TPval(TPval);
+			sprintf(ch,"X= %d : Y= %d       ",TPval[0],TPval[1]);
+			TFT_Text(ch,5,10,8,black,white);
+			_delay_ms(10);
+		}
+    }
+}

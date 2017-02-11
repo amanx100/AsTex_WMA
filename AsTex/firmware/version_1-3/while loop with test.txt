@@ -1,0 +1,9 @@
+	while(1)
+	{
+		if (!(PIND & (1<<PD3)))
+		{
+			Read_TPval(TPval);
+			TFT_PutsInt(TPval[0],4,0,0,8,blue,white);
+			TFT_PutsInt(TPval[1],4,40,0,8,blue,white);
+		}
+	}

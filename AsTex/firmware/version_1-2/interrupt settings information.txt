@@ -1,0 +1,31 @@
+	// Timer/Counter 1 initialization
+	// Clock source: System Clock
+	// Clock value: 31.250 kHz
+	// Mode: CTC top=OCR1A
+	// OC1A output: Discon.
+	// OC1B output: Discon.
+	// Noise Canceler: Off
+	// Input Capture on Falling Edge
+	// Timer1 Overflow Interrupt: Off
+	// Input Capture Interrupt: Off
+	// Compare A Match Interrupt: On
+	// Compare B Match Interrupt: Off
+	TCCR1A=0x00;
+	TCCR1B=0x0C;
+	TCNT1H=0x00;
+	TCNT1L=0x00;
+	ICR1H=0x00;
+	ICR1L=0x00;
+	OCR1AH=0x7A;
+	OCR1AL=0x12;
+	OCR1BH=0x00;
+	OCR1BL=0x00;
+
+	GICR |= (1<<INT0);					// Enable INT2
+	MCUCSR |= 0x00;	// Trigger INT2 on rising edge
+	MCUCR |= (1<<ISC01)|(1<<ISC00); //trigger int0 on rising edge
+	GIFR = (1<<INTF0); //Interrupt flag 2 is cleared by writing a logical one into INTF2
+		
+	TIMSK=0x10; //Timer/Counter1, Output Compare A Match Interrupt Enable
+		
+	sei(); //Global Interrupt enable
