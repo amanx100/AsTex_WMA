@@ -1,0 +1,16 @@
+in 1st opamp read the output by DMM and keep it around 21.5mV
+
+next opamp keep output reading around 245 with short ckt tck then connect tck and then calibrate...........
+
+donot forget to  boiled water test for QC pass
+
+
+UPDATE:
+1at Opamp gain: 21.36 times (res val: Rf=2.2k and Ri=47k) Noninverted without input resistance
+2nd Opamp gain: 100 times (res val: Rf=1k and Ri=100k) Noninverted with 1k input resistance
+
+in 1st opamp read the output by DMM and keep it around 30mV
+
+next opamp keep output reading around 300 with short ckt tck then connect tck and then calibrate...........
+
+donot forget to  boiled water test for QC pass
